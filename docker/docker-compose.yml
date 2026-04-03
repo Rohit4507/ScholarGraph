@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # ── Backend (FastAPI) ───────────────────────
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: scholargraph-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../backend/.env
+    environment:
+      - DATABASE_URL=postgresql://scholargraph:scholargraph@postgres:5432/scholargraph
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - scholargraph-net
+
+  # ── Frontend (Next.js) ─────────────────────
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: scholargraph-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - scholargraph-net
+
+  # ── PostgreSQL ─────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: scholargraph-postgres
+    environment:
+      - POSTGRES_USER=scholargraph
+      - POSTGRES_PASSWORD=scholargraph
+      - POSTGRES_DB=scholargraph
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - scholargraph-net
+
+  # ── Redis (Caching) ────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: scholargraph-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - scholargraph-net
+
+volumes:
+  pgdata:
+  uploads:
+
+networks:
+  scholargraph-net:
+    driver: bridge
