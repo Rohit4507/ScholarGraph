@@ -1,0 +1,199 @@
+# ScholarGraph AI - Code Quality Configuration
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["backend", "agents", "api", "database", "auth", "embeddings", "ingestion", "knowledge_graph", "rag", "scoring"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "langchain.*",
+    "langchain_community.*",
+    "langchain_openai.*",
+    "langchain_ollama.*",
+    "langgraph.*",
+    "pinecone.*",
+    "sentence_transformers.*",
+    "PIL.*",
+    "fitz.*",
+    "pytesseract.*",
+    "pdf2image.*",
+    "redis.*",
+    "passlib.*",
+    "python_jose.*",
+    "jinja2.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "api: marks tests as API tests",
+    "agent: marks tests as agent tests",
+    "security: marks tests as security tests",
+    "performance: marks tests as performance tests",
+]
+
+[tool.coverage.run]
+source = ["backend"]
+omit = [
+    "*/tests/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/migrations/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.bandit]
+exclude_dirs = ["tests", "migrations"]
+skips = ["B101", "B601"]
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scholargraph-ai"
+description = "GenAI-powered academic intelligence platform with ChatGPT-like conversational AI"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Rohit Rajput", email = "rohitrajput33220@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "python-multipart>=0.0.9",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-community>=0.3.0",
+    "langchain-ollama>=0.1.0",
+    "langgraph>=0.2.0",
+    "openai>=1.50.0",
+    "sentence-transformers>=3.1.0",
+    "pinecone-client>=5.0.0",
+    "PyMuPDF>=1.24.0",
+    "pytesseract==0.3.13",
+    "Pillow>=10.0.0",
+    "pdf2image>=1.17.0",
+    "sqlalchemy==2.0.35",
+    "alembic==1.13.0",
+    "psycopg2-binary>=2.9.9",
+    "redis==5.1.0",
+    "python-jose[cryptography]==3.3.0",
+    "passlib[bcrypt]==1.7.4",
+    "pydantic==2.9.0",
+    "pydantic-settings==2.5.0",
+    "python-dotenv==1.0.1",
+    "httpx==0.27.0",
+    "aiofiles==24.1.0",
+    "jinja2==3.1.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+    "pre-commit>=3.0.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "httpx>=0.27.0",
+    "faker>=19.0.0",
+]
+performance = [
+    "locust>=2.15.0",
+    "memory-profiler>=0.60.0",
+    "py-spy>=0.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Rohit4507/ScholarGraph"
+Documentation = "https://github.com/Rohit4507/ScholarGraph/docs"
+Repository = "https://github.com/Rohit4507/ScholarGraph.git"
+"Bug Tracker" = "https://github.com/Rohit4507/ScholarGraph/issues"
+
+[project.scripts]
+scholargraph = "backend.main:app"
