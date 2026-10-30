@@ -216,7 +216,7 @@ jobs:
     - name: Run safety check
       run: |
         cd backend
-        safety check || true
+        safety check || safety scan || true
 
     - name: Run bandit security scan
       run: |
