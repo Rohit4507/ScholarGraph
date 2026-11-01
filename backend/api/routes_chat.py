@@ -13,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from database.session import get_db
+from database.session import get_db, SessionLocal
 from database.models import User, ChatSession, ChatMessage
 from agents.message_router import MessageRouter, AgentType
 from agents.conversational_agent import ConversationalAgent
@@ -122,6 +122,8 @@ async def chat_stream(
         full_response = ""
         agent_type_used = None
         
+        # Dedicated DB session for streaming lifecycle
+        stream_db = SessionLocal()
         try:
             # Initialize message router and conversational agent
             message_router = MessageRouter()
@@ -159,9 +161,9 @@ async def chat_stream(
                 },
                 tenant_id=current_user.tenant_id if current_user and hasattr(current_user, 'tenant_id') else None
             )
-            db.add(assistant_message)
-            db.commit()
-            db.refresh(assistant_message)
+            stream_db.add(assistant_message)
+            stream_db.commit()
+            stream_db.refresh(assistant_message)
             assistant_message_id = assistant_message.id
             agent_type_used = route_decision.agent_type.value
             
@@ -187,12 +189,14 @@ async def chat_stream(
             assistant_message.content = full_response
             assistant_message.processing_time_ms = processing_time
             assistant_message.model_used = "openai_gpt4o"  # Could be dynamic based on actual LLM used
-            db.commit()
             
-            # Update session
-            chat_session.message_count += 1
-            chat_session.last_message_at = assistant_message.created_at
-            db.commit()
+            # Fetch session in streaming session
+            active_chat_session = stream_db.query(ChatSession).filter(ChatSession.id == session_id).first()
+            if active_chat_session:
+                active_chat_session.message_count += 1
+                active_chat_session.last_message_at = assistant_message.created_at
+
+            stream_db.commit()
             
             # Send final chunk with metadata
             final_chunk = {
@@ -220,7 +224,9 @@ async def chat_stream(
             # Update message with error if it was created
             if assistant_message_id:
                 assistant_message.content = f"Error: {str(e)}"
-                db.commit()
+                stream_db.commit()
+        finally:
+            stream_db.close()
     
     return StreamingResponse(
         generate_stream(),

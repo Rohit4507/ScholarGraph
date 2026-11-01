@@ -389,14 +389,14 @@ export default function ChatInterface({ sessionId, onDashboardUpdate, onSubjectC
                 Welcome to ScholarGraph AI!
               </h3>
               <p style={{ fontSize: '14px', lineHeight: '1.5' }}>
-                I'm your academic intelligence assistant. I can help you with:<br/>
+                I&apos;m your academic intelligence assistant. I can help you with:<br/>
                 📚 Document analysis and topic extraction<br/>
                 🎯 Exam predictions and probability scoring<br/>
                 🧠 Knowledge graph visualization<br/>
                 📝 Adaptive quiz generation<br/>
                 📊 Performance tracking and study plans<br/>
                 <br/>
-                Try asking: "Help me analyze my machine learning syllabus"
+                Try asking: &quot;Help me analyze my machine learning syllabus&quot;
               </p>
             </div>
           )}
